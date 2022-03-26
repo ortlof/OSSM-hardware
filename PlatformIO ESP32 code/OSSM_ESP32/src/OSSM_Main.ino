@@ -154,7 +154,9 @@ typedef struct struct_message
 
 struct_message incomingReadings;
 
-int position = 0;
+float position = 0;
+float deltaP = 0;
+long timer = millis();
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
@@ -164,11 +166,21 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
     Serial.println(String(incomingReadings.dec_percentage));
     // position_in = incomingReadings.position;
 
-    position = constrain((maxStrokeLengthMm * (1-incomingReadings.dec_percentage)), 0, maxStrokeLengthMm);
+    position = constrain((maxStrokeLengthMm * (1 - incomingReadings.dec_percentage)), 0, maxStrokeLengthMm) + 5;
 
     Serial.println(position);
+    Serial.println(millis() - timer);
+    timer = millis();
 
-    //g_ui.UpdateMessage(String(position));
+    // g_ui.UpdateMessage(String(position));
+    deltaP = position - stepper.getCurrentPositionInMillimeters();
+    if (deltaP < 0)
+    {
+        deltaP = deltaP * -1;
+    }
+    // stepper.setSpeedInMillimetersPerSecond(deltaP * 10);
+    // stepper.setAccelerationInMillimetersPerSecondPerSecond(deltaP * deltaP * 5);
+    // stepper.setDecelerationInMillimetersPerSecondPerSecond(deltaP * deltaP * 5);
     stepper.setTargetPositionInMillimeters(position);
 }
 
@@ -406,11 +418,12 @@ void wifiConnectionTask(void *pvParameters)
 // control mode
 void getUserInputTask(void *pvParameters)
 {
+
     bool wifiControlEnable = false;
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        // LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
+                // LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
         //         "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps?");
 
         if (speedPercentage > 1)
@@ -457,6 +470,8 @@ void getUserInputTask(void *pvParameters)
             stepper.setSpeedInMillimetersPerSecond(maxSpeedMmPerSecond * speedPercentage / 100.0);
             stepper.setAccelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage *
                                                                    speedPercentage / accelerationScaling);
+            stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage *
+                                                                   speedPercentage / accelerationScaling);
             // We do not set deceleration value here because setting a low decel when
             // going from high to low speed causes the motor to travel a long distance
             // before slowing. We should only change decel at rest
@@ -467,6 +482,7 @@ void getUserInputTask(void *pvParameters)
 
 void motionCommandTask(void *pvParameters)
 {
+
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
