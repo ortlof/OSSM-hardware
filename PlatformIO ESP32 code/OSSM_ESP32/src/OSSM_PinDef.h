@@ -1,4 +1,5 @@
-
+#ifndef OSSM_PIN_H
+#define OSSM_PIN_H
 /*
     Pin Definitions - Drivers, Buttons and Remotes
     OSSM Reference board users are unlikely to need to modify this! See OSSM_Config.h
@@ -21,14 +22,14 @@
 // define the IO pin the emergency stop switch is connected to
 #define STOP_PIN 19
 // define the IO pin where the limit(homing) switch(es) are connected to (switches in
-// series in normally closed setup)
+// series in normally open setup) Switches wired from IO pin to ground.
 #define LIMIT_SWITCH_PIN 12
 
 /*
         Wifi Control Pins
 */
 // Pin for WiFi reset button (optional)
-#define WIFI_RESET_PIN 0
+#define WIFI_RESET_PIN 23
 
 //Pin for the toggle for wifi control (Can be left alone if no hardware toggle is required)
 #define WIFI_CONTROL_TOGGLE_PIN 22
@@ -47,3 +48,6 @@
 #define REMOTE_SDA 21
 #define REMOTE_CLK 19
 #define REMOTE_ADDRESS 0x3c
+
+
+#endif
